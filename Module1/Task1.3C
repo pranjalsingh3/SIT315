@@ -1,0 +1,61 @@
+const int pirPin = 2;    // Motion sensor input pin (digital pin 2)
+const int motionLedPin = 13; // Built-in LED output pin for motion sensor (digital pin 13)
+const int ultrasonicLedPin = 12; // Output pin for ultrasonic sensor LED (digital pin 12)
+const int echoPin = 3;   // Ultrasonic sensor echo pin (digital pin 3)
+const int triggerPin = 4; // Ultrasonic sensor trigger pin (digital pin 4)
+
+
+volatile int motionFlag = LOW; // Variable to store motion sensor value
+volatile long ultrasonicDuration = 0; // Duration of ultrasonic pulse
+
+void setup() {
+  Serial.begin(9600);   // Initialize serial communication at 9600 baud rate
+  pinMode(pirPin, INPUT);  // Set motion sensor pin as input
+  pinMode(motionLedPin, OUTPUT); // Set motion LED pin as output
+  pinMode(ultrasonicLedPin, OUTPUT); // Set ultrasonic LED pin as output
+  pinMode(echoPin, INPUT); // Set ultrasonic sensor echo pin as input
+  pinMode(triggerPin, OUTPUT); // Set ultrasonic sensor trigger pin as output
+  
+  attachInterrupt(digitalPinToInterrupt(pirPin), motionInterrupt, CHANGE); // Attach motion sensor interrupt
+  attachInterrupt(digitalPinToInterrupt(echoPin), ultrasonicInterrupt, CHANGE); // Attach ultrasonic sensor interrupt
+}
+
+void loop() {
+  // Pretend to do other stuff
+  delay(50);
+}
+
+void motionInterrupt() {
+  motionFlag = digitalRead(pirPin); // To read the motion sensor value
+  // Print the input (motion sensor) and output (LED) values on Serial Monitor
+  Serial.print(" Motion LED: ");
+
+  if (motionFlag == HIGH) {
+    digitalWrite(motionLedPin, HIGH);  // Turn on the LED if motion is detected
+    Serial.println("ON");
+  } else {
+    digitalWrite(motionLedPin, LOW);   // Turn off the LED if no motion is detected
+    Serial.println("OFF");
+  }
+}
+
+void ultrasonicInterrupt() {
+  
+  digitalWrite(echoPin, HIGH);// Manually changing state to trigger LED
+  digitalWrite(triggerPin, LOW); // Ensure trigger pin is low
+  delayMicroseconds(20); // Short delay
+  digitalWrite(triggerPin, HIGH); // Send a pulse to trigger the ultrasonic sensor
+  delayMicroseconds(500);
+  digitalWrite(triggerPin, LOW); // Reset trigger pin
+  //Serial.print(" Ultrasonic LED: ");
+  
+  if (digitalRead(echoPin) == HIGH) {
+    ultrasonicDuration = pulseIn(echoPin, HIGH); // Measure the duration of ultrasonic pulse
+    digitalWrite(ultrasonicLedPin, HIGH); // Turn on the ultrasonic LED
+  	Serial.println("Ultrasonic LED: ON");
+  } else {
+    digitalWrite(ultrasonicLedPin, LOW); // Turn off the ultrasonic LED
+  	//Serial.println("OFF");
+  }
+  delay(50);
+}
